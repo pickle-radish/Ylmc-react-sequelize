@@ -29,6 +29,10 @@ module.exports = function(sequelize, DataTypes) {
       parents_phone: {
         type: DataTypes.STRING(13),
       },
+      gender: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+      },
       isStudent: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,

@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import axios from 'axios';
 import $ from 'jquery';
-// import {} from 'jquery.cookie';
 
 import {NavLink} from 'react-router-dom';
 
@@ -9,13 +8,15 @@ import {NavLink} from 'react-router-dom';
 axios.defaults.withCredentials = true;
 const headers={withCredentials:true};
 
-class Attendance extends Component{
+class EditAtt extends Component{
     
     state = {
         list:[],
+        attList:[],
+        attCheck:[],
     }
 
-    attendanceCheck = async () =>{
+    editDays = async () =>{
         let checkAtt=[0];
 
         this.state.list.forEach((item)=>{
@@ -23,28 +24,33 @@ class Attendance extends Component{
         })
         const send_param={
             headers,
+            id: this.props.location.query.id,
             checkAtt,
         }
-        
         try{
-            const result = await axios.post('http://localhost:8080/attendance/checkAtt', send_param);
-            if(result.data.list){
-                this.setState({
-                    list:result.data.list
-                })
+            const result = await axios.post('http://localhost:8080/attendance/editAtt', send_param);
+            if(result.data.message){
+                alert(result.data.message);
             }
         }catch(err){
-            return null;
+            console.log(err)
         }
-
     }
 
-    getList= async ()=>{        
+   
+    getList= async ()=>{      
+
+        const send_param={
+            headers,
+            id: this.props.location.query.id,
+        }  
         try{
             const result = await axios.post('http://localhost:8080/list/show', {headers});
+            const attlist = await axios.post('http://localhost:8080/attendance/editList', send_param);
             if(result.data.list){
                 this.setState({
-                    list:result.data.list
+                    list:result.data.list,
+                    attList:attlist.data.list,
                 })
             }
         }catch(err){
@@ -64,12 +70,17 @@ class Attendance extends Component{
         }
 
         let list = this.state.list.map((item)=>{ 
+            let checked = false;
+            this.state.attList.forEach((value)=>{
+                if (value.id === item.id)
+                    checked = true;
+            })
             return (
                 <tr key={item.id}>
                     <td>{item.pasture}</td>
                     <td>{item.farm}</td>
                     <td>{item.name}</td>
-                    <td><input type="checkbox" name={item.id}></input></td>
+                    <td><input type="checkbox" defaultChecked={checked} name={item.id}></input></td>
                 </tr>
             )
         })
@@ -77,7 +88,6 @@ class Attendance extends Component{
 
         return(
             <div>
-
                 <table className="table" style={attendanceStyle}>
                     <thead >
                         <tr>
@@ -91,10 +101,10 @@ class Attendance extends Component{
                         {list}
                     </tbody>
                 </table>
-                <NavLink to="/showgraph"><button onClick={this.attendanceCheck}>submit</button></NavLink>
+                <NavLink to="/showgraph"><button onClick={this.editDays}>submit</button></NavLink>
             </div>
         )
     }
 }
 
-export default Attendance;
+export default EditAtt;

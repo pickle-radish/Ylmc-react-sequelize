@@ -9,12 +9,34 @@ const headers={withCredentials:true};
 class ShowList extends Component{
 
     state = {
-        list:[]
+        list:[],
+        expelled:0
     }
     
+    Comeback = async (id) =>{
+        const send_param={
+            headers,
+            id,
+            expelled:false
+
+        }
+        try{
+            const result = await axios.post('http://localhost:8080/list/expelled', send_param);
+            if(result.data.message){
+                this.setState({
+                    expelled:this.state.expelled+1,
+                })
+            }
+
+        }catch(err){
+            console.log(err);
+            return null;
+        }
+    }
+
     getList = async ()=>{
         try{
-            const result = await axios.post('http://localhost:8080/list/show', {headers});
+            const result = await axios.post('http://localhost:8080/list/expelledlist', {headers});
             if(result.data.list){
                 this.setState({
                     list:result.data.list
@@ -28,14 +50,14 @@ class ShowList extends Component{
     componentWillMount(){
         this.getList();
     }
-
+    shouldComponentUpdate(){
+        this.getList();
+        return true;
+    }
 
     render(){
         let list = this.state.list.map((item)=>{ 
-            let b_day=""
-            if(item.b_day){
-                b_day = item.b_day.split("-");
-            }
+            let b_day = item.b_day.split("-");
             return (
                 <tr key={item.id}>
                     <td>{item.pasture}</td>
@@ -46,11 +68,11 @@ class ShowList extends Component{
                     <td>{b_day[1]}-{b_day[2]}</td>
                     <td>{item.phone}</td>
                     <td>{item.parents_phone}</td>
-                    <td></td>
+                    <td><button onClick={this.Comeback.bind(null, item.id)}>복귀</button></td>
                 </tr>
             )
         })
-       
+
         return(
             <div>
                 <table className="table">

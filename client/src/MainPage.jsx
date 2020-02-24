@@ -9,7 +9,11 @@ import { NavDropdown } from 'react-bootstrap';
 import {Route, NavLink, HashRouter} from 'react-router-dom';
 import ShowList from './ShowList';
 import UpdateList from './UpdateList';
+import NewMember from './NewMember';
+import Expelled from './Expelled';
+import ShowGraph from './ShowGraph';
 import Attendance from './Attendance';
+import EditAtt from './EditAtt';
 
 class MainPage extends Component{
     
@@ -26,10 +30,14 @@ class MainPage extends Component{
                             <Nav className="mr-auto">
                             <Nav.Link href="#home">Home</Nav.Link>
                             <NavDropdown title="List" id="basic-nav-dropdown">
-                                <NavDropdown.Item ><NavLink to="/showlist">Show List</NavLink></NavDropdown.Item>
-                                <NavDropdown.Item ><NavLink to="/updatelist">Update List</NavLink></NavDropdown.Item>
+                                <NavDropdown.Item ><NavLink to="/list">Show List</NavLink></NavDropdown.Item>
                                 <NavDropdown.Item ><NavLink to="/newmember">New Member</NavLink></NavDropdown.Item>
                                 <NavDropdown.Item ><NavLink to="/expelledMember">Expelled List</NavLink></NavDropdown.Item>
+                                {/* <ul className="header">
+                                    <li><NavLink to="/list">Show List</NavLink></li>
+                                    <li><NavLink to="/newmember">New Member</NavLink></li>
+                                    <li><NavLink to="/expelledMember">Expelled List</NavLink></li>
+                                </ul> */}
                             </NavDropdown>
                             <NavDropdown title="Attendance" id="basic-nav-dropdown">
                                 <NavDropdown.Item ><NavLink to="/showgraph">Show Attendance</NavLink></NavDropdown.Item>
@@ -42,12 +50,13 @@ class MainPage extends Component{
                         
                         <div id="content">
                             <Route exact path="/" />
-                            <Route path="/showlist" component={ShowList} />
-                            <Route path="/updatelist" component={UpdateList} />
-                            {/* <Route path="/newmember" component={ShowList} />
-                            <Route path="/expelledMember" component={ShowList} />
-                            <Route path="/showgraph" component={Attendance} /> */}
-                            <Route path="/todayAttendance" component={Attendance} />
+                            <Route path="/list" component={ShowList} />
+                            <Route path="/update" component={UpdateList} />
+                            <Route path="/newmember" component={NewMember} />
+                            <Route path="/expelledMember" component={Expelled} />
+                            <Route path="/showgraph" component={ShowGraph} />
+                            <Route path="/todayAttendance" component={Attendance} /> 
+                            <Route path="/EditAtt" component={EditAtt} /> 
                         </div>
                     </div>
                 </HashRouter>
