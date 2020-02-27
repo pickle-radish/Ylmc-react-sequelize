@@ -13,6 +13,7 @@ class Attendance extends Component{
     
     state = {
         list:[],
+        newFriend:[]
     }
 
     attendanceCheck = async () =>{
@@ -21,17 +22,18 @@ class Attendance extends Component{
         this.state.list.forEach((item)=>{
             checkAtt[item.id]=$(`input:checkbox[name="${item.id}"]`).is(":checked")
         })
+        this.state.newFriend.forEach((item)=>{
+            checkAtt[item.id]=$(`input:checkbox[name="${item.id}"]`).is(":checked")
+        })
         const send_param={
             headers,
             checkAtt,
         }
-        
+        console.log(checkAtt);
         try{
             const result = await axios.post('http://localhost:8080/attendance/checkAtt', send_param);
-            if(result.data.list){
-                this.setState({
-                    list:result.data.list
-                })
+            if(result){
+                return null;
             }
         }catch(err){
             return null;
@@ -44,8 +46,10 @@ class Attendance extends Component{
             const result = await axios.post('http://localhost:8080/list/show', {headers});
             if(result.data.list){
                 this.setState({
-                    list:result.data.list
+                    list:result.data.list,
+                    newFriend:result.data.newFriendList
                 })
+                console.log(result.data.newFriendList);
             }
         }catch(err){
             return null;
@@ -56,14 +60,23 @@ class Attendance extends Component{
         this.getList();
     }
 
-
-
     render(){
         const attendanceStyle={
             width:500,
         }
 
         let list = this.state.list.map((item)=>{ 
+            return (
+                <tr key={item.id}>
+                    <td>{item.pasture}</td>
+                    <td>{item.farm}</td>
+                    <td>{item.name}</td>
+                    <td><input type="checkbox" name={item.id}></input></td>
+                </tr>
+            )
+        })
+
+        let newFriends = this.state.newFriend.map((item)=>{
             return (
                 <tr key={item.id}>
                     <td>{item.pasture}</td>
@@ -89,8 +102,11 @@ class Attendance extends Component{
                     </thead>
                     <tbody>
                         {list}
+                        <td colspan="4">새친구들</td>
+                        {newFriends}
                     </tbody>
                 </table>
+                
                 <NavLink to="/showgraph"><button onClick={this.attendanceCheck}>submit</button></NavLink>
             </div>
         )

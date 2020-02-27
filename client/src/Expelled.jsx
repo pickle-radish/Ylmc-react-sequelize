@@ -26,6 +26,7 @@ class Expelled extends Component{
                 this.setState({
                     expelled:this.state.expelled+1,
                 })
+                this.getList();
             }
 
         }catch(err){

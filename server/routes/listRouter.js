@@ -27,13 +27,17 @@ router.post('/new', async (req,res)=>{
         if(req.body.isStudent==="학생"){
             gender=true;
         }
-        let b_day
+        let b_day;
         if(!req.body.b_day){
             b_day = null
+        }else{
+            b_day = req.body.b_day
         }
         let year
         if(!req.body.year){
             year = null;
+        }else{
+            year = req.body.year;
         }
         
         const result = await Member.create({
@@ -51,6 +55,22 @@ router.post('/new', async (req,res)=>{
         });
         res.json({message:"success"});
     } catch(err){
+        console.log(err);
+        res.json({message:false});
+    }
+})
+
+router.post('/register', async (req,res)=>{
+    try{
+        const resutl = await Member.update({
+            newFriend:req.body.newFriend,
+        },{
+            where:{id:req.body.id}
+        })
+
+        res.json({message:"success"});
+
+    }catch(err){
         console.log(err);
         res.json({message:false});
     }
@@ -152,7 +172,12 @@ router.post('/show', async (req,res)=>{
             where: {expelled:false, newFriend:false},        
             order:[['pasture', 'asc'], ['farm', 'asc'], ['isStudent', 'desc']]
         },)
-        res.json({list});
+
+        const newFriendList = await Member.findAll({
+            where: {expelled:false, newFriend:true},        
+            order:[['pasture', 'asc'], ['farm', 'asc'], ['isStudent', 'desc']]
+        })
+        res.json({list, newFriendList});
     }catch(err){
         console.log(err);
         res.json({list:"error"});

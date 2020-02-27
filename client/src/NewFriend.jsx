@@ -25,6 +25,7 @@ class NewFriend extends Component{
                 this.setState({
                     newFriend:this.state.newFriend+1,
                 })
+                this.getList();
             }
 
         }catch(err){
@@ -49,13 +50,15 @@ class NewFriend extends Component{
 
     componentWillMount(){
         this.getList();
-        console.log("will Mount");
     }
-    
+
 
     render(){
         let list = this.state.list.map((item)=>{ 
-            let b_day = item.b_day.split("-");
+            let b_day=""
+            if(item.b_day){
+                b_day = item.b_day.split("-");
+            }
             return (
                 <tr key={item.id}>
                     <td>{item.pasture}</td>

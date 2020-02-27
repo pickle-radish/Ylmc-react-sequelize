@@ -49,8 +49,11 @@ class ShowGraph extends Component{
 
         let list=this.state.daysList.map((item,index)=>{
             const day = item.attendance_day.split("-");
-            
-            data.push({name: `${day[1]}-${day[2]}`, 출석: this.state.AttList[index].length, })
+            const list = this.state.AttList[index].length;
+            let newFriends = this.state.AttList[index].filter((item)=>{
+                return item.newFriend===true;
+            })
+            data.push({name: `${day[1]}-${day[2]}`, 출석: list, 새친구:newFriends.length})
 
             return <tr><td><NavLink to={{pathname:'/editAtt', query:{id:item.id}}}>{item.attendance_day}</NavLink></td><td>{this.state.AttList[index].length}</td></tr>
         })
@@ -60,7 +63,7 @@ class ShowGraph extends Component{
         const renderLineChart = (
             <LineChart width={1000} height={500} data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <Line type="monotone" dataKey="출석" stroke="#8884d8" />
-                <Line type="monotone" dataKey="pv" stroke="#82ca9d" />
+                <Line type="monotone" dataKey="새친구" stroke="#82ca9d" />
                 <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                 <XAxis dataKey="name" />
                 <YAxis />
