@@ -6,25 +6,24 @@ import {NavLink} from 'react-router-dom';
 axios.defaults.withCredentials = true;
 const headers={withCredentials:true};
 
-class Expelled extends Component{
+class NewFriend extends Component{
 
     state = {
         list:[],
-        expelled:0
+        newFriend:0
     }
     
-    Comeback = async (id) =>{
+    register = async (id) =>{
         const send_param={
             headers,
             id,
-            expelled:false
-
+            newFriend:false
         }
         try{
-            const result = await axios.post('http://localhost:8080/list/expelled', send_param);
+            const result = await axios.post('http://localhost:8080/list/register', send_param);
             if(result.data.message){
                 this.setState({
-                    expelled:this.state.expelled+1,
+                    newFriend:this.state.newFriend+1,
                 })
             }
 
@@ -36,11 +35,12 @@ class Expelled extends Component{
 
     getList = async ()=>{
         try{
-            const result = await axios.post('http://localhost:8080/list/expelledlist', {headers});
+            const result = await axios.post('http://localhost:8080/list/newList', {headers});
             if(result.data.list){
                 this.setState({
                     list:result.data.list
                 })
+                return true;
             }
         }catch(err){
             return null;
@@ -49,7 +49,9 @@ class Expelled extends Component{
 
     componentWillMount(){
         this.getList();
+        console.log("will Mount");
     }
+    
 
     render(){
         let list = this.state.list.map((item)=>{ 
@@ -64,7 +66,7 @@ class Expelled extends Component{
                     <td>{b_day[1]}-{b_day[2]}</td>
                     <td>{item.phone}</td>
                     <td>{item.parents_phone}</td>
-                    <td><button onClick={this.Comeback.bind(null, item.id)}>복귀</button></td>
+                    <td><button onClick={this.register.bind(null, item.id)}>등반</button></td>
                 </tr>
             )
         })
@@ -86,4 +88,4 @@ class Expelled extends Component{
     }
 }
 
-export default Expelled;
+export default NewFriend;

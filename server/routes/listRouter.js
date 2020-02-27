@@ -118,6 +118,20 @@ router.post('/update', async (req,res)=>{
 })
 
 
+router.post('/newList', async (req,res)=>{
+    try{
+        const list = await Member.findAll({
+            where: {expelled:false, newFriend:true}
+        },{
+            order:[['pasture', 'asc'], ['farm', 'asc']]
+        },)
+        res.json({list});
+    }catch(err){
+        console.log(err);
+        res.json({list:"error"});
+    }
+})
+
 router.post('/expelledlist', async (req,res)=>{
     try{
         const list = await Member.findAll({
@@ -135,7 +149,7 @@ router.post('/expelledlist', async (req,res)=>{
 router.post('/show', async (req,res)=>{
     try{
         const list = await Member.findAll({
-            where: {expelled:false},        
+            where: {expelled:false, newFriend:false},        
             order:[['pasture', 'asc'], ['farm', 'asc'], ['isStudent', 'desc']]
         },)
         res.json({list});

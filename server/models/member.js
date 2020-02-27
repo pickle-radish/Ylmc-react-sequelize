@@ -40,7 +40,11 @@ module.exports = function(sequelize, DataTypes) {
       expelled:{
           type: DataTypes.BOOLEAN,
           defaultValue: false,
-      }
+      },
+      newFriend:{
+          type: DataTypes.BOOLEAN,
+          defaultValue: true,
+      },
     }, {
       tableName: 'member',
       charset: 'utf8',

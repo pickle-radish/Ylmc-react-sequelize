@@ -10,6 +10,7 @@ import {Route, NavLink, HashRouter} from 'react-router-dom';
 import ShowList from './ShowList';
 import UpdateList from './UpdateList';
 import NewMember from './NewMember';
+import NewFriend from './NewFriend';
 import Expelled from './Expelled';
 import ShowGraph from './ShowGraph';
 import Attendance from './Attendance';
@@ -32,6 +33,7 @@ class MainPage extends Component{
                             <NavDropdown title="List" id="basic-nav-dropdown">
                                 <NavDropdown.Item ><NavLink to="/list">Show List</NavLink></NavDropdown.Item>
                                 <NavDropdown.Item ><NavLink to="/newmember">New Member</NavLink></NavDropdown.Item>
+                                <NavDropdown.Item ><NavLink to="/newList">New Friend</NavLink></NavDropdown.Item>
                                 <NavDropdown.Item ><NavLink to="/expelledMember">Expelled List</NavLink></NavDropdown.Item>
                                 {/* <ul className="header">
                                     <li><NavLink to="/list">Show List</NavLink></li>
@@ -53,6 +55,7 @@ class MainPage extends Component{
                             <Route path="/list" component={ShowList} />
                             <Route path="/update" component={UpdateList} />
                             <Route path="/newmember" component={NewMember} />
+                            <Route path="/newList" component={NewFriend} />
                             <Route path="/expelledMember" component={Expelled} />
                             <Route path="/showgraph" component={ShowGraph} />
                             <Route path="/todayAttendance" component={Attendance} /> 
