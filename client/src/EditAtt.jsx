@@ -4,27 +4,28 @@ import $ from 'jquery';
 
 import {NavLink} from 'react-router-dom';
 
-
 axios.defaults.withCredentials = true;
 const headers={withCredentials:true};
 
-class EditAtt extends Component{
-    
-    state = {
-        list:[],
+class EditAtt extends Component {
+    state={
+        oldList:[],
+        newList:[],
         attList:[],
-        attCheck:[],
-        newFriend:[]
     }
-
+    
     editDays = async () =>{
         let checkAtt=[0];
 
-        this.state.list.forEach((item)=>{
-            checkAtt[item.id]=$(`input:checkbox[name="${item.id}"]`).is(":checked")
+        this.state.oldList.forEach((item)=>{
+            if($(`input:checkbox[name="${item.id}"]`).is(":checked")){
+                checkAtt[item.id]=item.id
+            }
         })
-        this.state.newFriend.forEach((item)=>{
-            checkAtt[item.id]=$(`input:checkbox[name="${item.id}"]`).is(":checked")
+        this.state.newList.forEach((item)=>{
+            if($(`input:checkbox[name="${item.id}"]`).is(":checked")){
+                checkAtt[item.id]=item.id
+            }
         })
         const send_param={
             headers,
@@ -37,36 +38,54 @@ class EditAtt extends Component{
                 alert(result.data.message);
             }
         }catch(err){
-            console.log(err)
+            alert("에러");
         }
     }
 
-   
-    getList= async ()=>{      
+    checkList = (list)=>{
+        const result = list.map((item)=>{ 
+            let checked = false;
+            this.state.attList.forEach((value)=>{
+                if (value.id === item.id)
+                    checked = true;
+            })
+            return (
+                <tr key={item.id}>
+                    <td>{item.pasture}</td>
+                    <td>{item.farm}</td>
+                    <td>{item.name}</td>
+                    <td><input type="checkbox" defaultChecked={checked} name={item.id}></input></td>
+                </tr>
+            )
+        })
 
+        return result
+    }
+   
+    getAtt= async ()=>{    
         const send_param={
             headers,
             id: this.props.location.query.id,
         }  
         try{
-            const result = await axios.post('http://localhost:8080/list/show', {headers});
-            const attlist = await axios.post('http://localhost:8080/attendance/editList', send_param);
-            if(result.data.list){
+            const oldList = await axios.post('http://localhost:8080/list/show', {headers});
+            const newList = await axios.post('http://localhost:8080/list/newList', {headers});
+            const attList = await axios.post('http://localhost:8080/attendance/editList', send_param);
+            if(oldList.data.list && newList.data.list && attList.data.list ){
                 this.setState({
-                    list:result.data.list,
-                    newFriend:result.data.newFriendList,
-                    attList:attlist.data.list,
+                    oldList:oldList.data.list,
+                    newList:newList.data.list,
+                    attList:attList.data.list,
                 })
             }
         }catch(err){
             return null;
         }
     }
-
+    
     componentWillMount(){
-        this.getList();
+        this.getAtt();
     }
-
 
 
     render(){
@@ -74,38 +93,8 @@ class EditAtt extends Component{
             width:500,
         }
 
-        let list = this.state.list.map((item)=>{ 
-            let checked = false;
-            this.state.attList.forEach((value)=>{
-                if (value.id === item.id)
-                    checked = true;
-            })
-            return (
-                <tr key={item.id}>
-                    <td>{item.pasture}</td>
-                    <td>{item.farm}</td>
-                    <td>{item.name}</td>
-                    <td><input type="checkbox" defaultChecked={checked} name={item.id}></input></td>
-                </tr>
-            )
-        })
-
-        let newFriends = this.state.newFriend.map((item)=>{ 
-            let checked = false;
-            this.state.attList.forEach((value)=>{
-                if (value.id === item.id)
-                    checked = true;
-            })
-            return (
-                <tr key={item.id}>
-                    <td>{item.pasture}</td>
-                    <td>{item.farm}</td>
-                    <td>{item.name}</td>
-                    <td><input type="checkbox" defaultChecked={checked} name={item.id}></input></td>
-                </tr>
-            )
-        })
-
+        let oldlist = this.checkList(this.state.oldList);
+        let newlist = this.checkList(this.state.newList);
 
         return(
             <div>
@@ -119,9 +108,9 @@ class EditAtt extends Component{
                         </tr>
                     </thead>
                     <tbody>
-                        {list}
+                        {oldlist}
                         <td colspan="4">새친구들</td>
-                        {newFriends}
+                        {newlist}
                     </tbody>
                 </table>
                 <NavLink to="/showgraph"><button onClick={this.editDays}>submit</button></NavLink>
@@ -129,5 +118,4 @@ class EditAtt extends Component{
         )
     }
 }
-
-export default EditAtt;
+export default EditAtt

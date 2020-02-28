@@ -3,19 +3,86 @@ const router=express.Router();
 
 const Member=require('../models').Member;
 
-router.post('/delList', async (req,res)=>{
+
+router.post('/expelled', async (req,res)=>{
     try{
-        const result = await Member.destroy({
+        await Member.update({
+           expelled:req.body.expelled,
+        },{
             where:{id:req.body.id}
         })
-
-        res.json({message:"success"})
+        if(req.body.expelled){
+            res.json({message:"제적되었습니다"})
+        }else{
+            res.json({message:"복귀되었습니다"})
+        }
     }catch(err){
         console.log(err);
-        res.json({message:false})
+        res.json({message:false});
     }
 })
 
+router.post('/update', async (req,res)=>{
+    console.log(req.body.id);
+    try{
+        let gender=false
+        if(req.body.gender==="남자"){
+            gender=true;
+        }
+        let isStudent=true
+        if(req.body.gender==='선생'){
+            isStudent=false;
+        }
+        await Member.update({
+            pasture:req.body.pasture,
+            farm:req.body.farm,
+            name:req.body.name,
+            b_day:req.body.b_day,
+            school:req.body.school,
+            year:req.body.year,
+            area:req.body.area,
+            phone:req.body.phone,
+            parents_phone:req.body.parents_phone,
+            gender,
+            isStudent,
+        },{
+            where:{id:req.body.id}
+        })
+
+        res.json({message:"수정되었습니다"})
+
+    }catch(err){
+        console.log(err);
+        res.json({message:false});
+    }
+})
+
+router.post('/getInfo', async (req,res)=>{
+    try{
+        const result = await Member.findOne({
+            where:{id:req.body.id}
+        })
+        res.json({info:result});
+    }catch(err){
+        console.log(err);
+        res.json({info:false})
+    }
+})
+
+router.post('/register', async (req,res)=>{
+    try{
+        await Member.update({
+            newFriend:false,
+        },{
+            where:{id:req.body.id}
+        })
+        res.json({message:"등반되었습니다"});
+
+    }catch(err){
+        console.log(err);
+        res.json({message:false});
+    }
+})
 
 router.post('/new', async (req,res)=>{
     try{
@@ -53,106 +120,15 @@ router.post('/new', async (req,res)=>{
             gender,
             isStudent,
         });
-        res.json({message:"success"});
+        res.json({message:true});
     } catch(err){
         console.log(err);
         res.json({message:false});
     }
 })
 
-router.post('/register', async (req,res)=>{
-    try{
-        const resutl = await Member.update({
-            newFriend:req.body.newFriend,
-        },{
-            where:{id:req.body.id}
-        })
 
-        res.json({message:"success"});
-
-    }catch(err){
-        console.log(err);
-        res.json({message:false});
-    }
-})
-
-router.post('/expelled', async (req,res)=>{
-    try{
-        const result = await Member.update({
-           expelled:req.body.expelled,
-        },{
-            where:{id:req.body.id}
-        })
-
-        res.json({message:"success"})
-
-    }catch(err){
-        console.log(err);
-        res.json({message:false});
-    }
-})
-
-router.post('/submit', async (req,res)=>{
-    try{
-        let gender=false
-        if(req.body.gender==="남자"){
-            gender=true;
-        }
-        const result = await Member.update({
-            pasture:req.body.pasture,
-            farm:req.body.farm,
-            name:req.body.name,
-            b_day:req.body.b_day,
-            school:req.body.school,
-            year:req.body.year,
-            area:req.body.area,
-            phone:req.body.phone,
-            parents_phone:req.body.parents_phone,
-            gender,
-        },{
-            where:{id:req.body.id}
-        })
-
-        res.json({message:"success"})
-
-    }catch(err){
-        console.log(err);
-        res.json({message:false});
-    }
-})
-
-
-
-
-router.post('/update', async (req,res)=>{
-    try{
-        const info = await Member.findOne({
-            where:{id:req.body.id}
-        })
-        res.json({info});
-
-    }catch(err){
-        console.log(err);
-        res.json({info:"error"});
-    }
-})
-
-
-router.post('/newList', async (req,res)=>{
-    try{
-        const list = await Member.findAll({
-            where: {expelled:false, newFriend:true}
-        },{
-            order:[['pasture', 'asc'], ['farm', 'asc']]
-        },)
-        res.json({list});
-    }catch(err){
-        console.log(err);
-        res.json({list:"error"});
-    }
-})
-
-router.post('/expelledlist', async (req,res)=>{
+router.post('/expelledList', async (req,res)=>{
     try{
         const list = await Member.findAll({
             where: {expelled:true}
@@ -166,23 +142,31 @@ router.post('/expelledlist', async (req,res)=>{
     }
 })
 
-router.post('/show', async (req,res)=>{
+router.post('/newList', async (req,res)=>{
     try{
         const list = await Member.findAll({
-            where: {expelled:false, newFriend:false},        
-            order:[['pasture', 'asc'], ['farm', 'asc'], ['isStudent', 'desc']]
+            where: {newFriend:true}
+        },{
+            order:[['pasture', 'asc'], ['farm', 'asc']]
         },)
-
-        const newFriendList = await Member.findAll({
-            where: {expelled:false, newFriend:true},        
-            order:[['pasture', 'asc'], ['farm', 'asc'], ['isStudent', 'desc']]
-        })
-        res.json({list, newFriendList});
+        res.json({list});
     }catch(err){
         console.log(err);
         res.json({list:"error"});
     }
 })
 
+router.post('/show', async (req,res)=>{
+    try{
+        const list = await Member.findAll({
+            where: {newFriend:false, expelled:false}, 
+            order:[['pasture', 'asc'], ['farm', 'asc'], ['isStudent', 'desc']]
+        })
+        res.json({list});
+    }catch(err){
+        console.log(err);
+        res.json({list:false});
+    }
+})
 
 module.exports=router;

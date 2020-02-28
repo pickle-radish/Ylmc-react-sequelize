@@ -828,21 +828,21 @@ handleChangeS=(event)=>{
 
 ```jsx
 submit = async ()=>{
-    const send_param={
-        headers,
-        pasture:this.pasture.value,
-        farm:this.farm.value,
-        name:this.name.value,
-        b_day:this.b_day.value,
-        school:this.school.value,
-        year:this.year.value,
-        area:this.area.value,
-        phone:this.phone.value,
-        parents_phone:this.parents_phone.value,
-        gender:this.state.gender,
-        isStudent:this.state.isStudent,
-    }
     try{
+        const send_param={
+            headers,
+            pasture:this.pasture.value,
+            farm:this.farm.value,
+            name:this.name.value,
+            b_day:this.b_day.value,
+            school:this.school.value,
+            year:this.year.value,
+            area:this.area.value,
+            phone:this.phone.value,
+            parents_phone:this.parents_phone.value,
+            gender:this.state.gender,
+            isStudent:this.state.isStudent,
+        }
         const result = await axios.post('http://localhost:8080/list/new', send_param);
         if(result.data.message){
             return result
@@ -914,9 +914,7 @@ router.post('/new', async (req,res)=>{
 import React, {Component} from 'react';
 
 class NewFriends extends Component{
-
     render(){
-
         return (
             <div>
                 new friends
@@ -1036,7 +1034,6 @@ register = async (id) =>{
     const send_param={
         headers,
         id,
-        newFriend:false
     }
     try{
         const result = await axios.post('http://localhost:8080/list/register', send_param);
@@ -1051,17 +1048,16 @@ register = async (id) =>{
 }
 ```
 
-7. 다시 server로 가서 listRouter에 register경로를 추가한다
+7. 다시 server로 가서 listRouter에 register경로를 추가하고 sequelize를 이용해서 데이터베이스에 newFriend의 값을 변경한다
 
 ```js
 router.post('/register', async (req,res)=>{
     try{
         await Member.update({
-            newFriend:req.body.newFriend,
+            newFriend:false,
         },{
             where:{id:req.body.id}
         })
-
         res.json({message:"등반되었습니다"});
 
     }catch(err){
@@ -1093,6 +1089,399 @@ router.post('/show', async (req,res)=>{
 
 
 
+### 정보 수정
+
+1. 정보 수정 페이지는 List의 항목에는 없지만 List에서 명단을 볼 때 이름을 클릭하면 정보를 수정하는 페이지로 들어가게끔 라우팅 한다 정보를 수정하는 페이지는 새친구를 등록하는 페이지와 구성이 동일함으로 NewMember.jsx를 복사해서 UpdateMember.jsx를 만들어준다
+
+2. 이름을 클릭해서 페이지 이동을 할 떄에는 id 값도 넘겨 줘야 하기 때문에 NavLink를 사용해서 페이지 이동할 때 id값도 같이 넘겨준다 ShowList에서 list를 map함수로 바꿔주는 부분에서 {item.name}을 다음과 같이 수정한다
+
+```jsx
+<td><NavLink to={{pathname:'/update', query:{id:item.id}}}>{item.name}</NavLink></td>
+```
+
+3. Content.jsx에서 UpdateMember를 import시켜준 뒤에  /update 에 대한 경로를 추가해준다
+
+```jsx
+import ShowList from './ShowList';
+import NewMember from './NewMember';
+import NewFriends from './NewFriends';
+import UpdateMember from './UpdateMember';
+```
+
+
+
+```jsx
+<Route exact path='/' />
+<Route path='/list' component={ShowList} />
+<Route path='/newmember' component={NewMember} />
+<Route path='/newList' component={NewFriends} />
+<Route path='/update' component={UpdateMember} />
+```
+
+4. UpdateMember.jsx에서는 render하기 전에 componentWillMount() 함수로 데이터베이스에서 해당 인원의 정보를 받아와서 state값의 info에 저장한다 먼저 state에 info를 정의한다
+
+```jsx
+state = {
+    gender:"",
+    isStudent:"",
+    info:[],
+}
+```
+
+
+
+5. componentWillMount메소드에서 호출하는getInfo는 다음과 같이 정의한다
+
+```jsx
+getInfo = async()=>{
+    try{
+        const send_param={
+            headers,
+            id: this.props.location.query.id,
+        }
+        const result=await axios.post('http://localhost:8080/list/getInfo', send_param);
+        if(result.data.info){
+            this.setState({
+                info:result.data.info
+            })
+        }
+    }catch(err){
+        return null;
+    }
+}
+```
+
+5. server에서는 /list/getInfo 에서 해당 아이디의 데이터를 넘겨준다
+
+```js
+router.post('/getInfo', async (req,res)=>{
+    try{
+        const result = await Member.findOne({
+            where:{id:req.body.id}
+        })
+        res.json({info:result});
+    }catch(err){
+        console.log(err);
+        res.json({info:false})
+    }
+})
+```
+
+6. UpdateMember.jsx에서는 넘겨받은 값을 가지고 render부분에서 정의 되있는info에 input태그 안에 값을 다음과 같은 방식으로 넣어준다
+7. 먼저 state값에 있는 데이터를 꺼내서 info에 저장한다
+8. 그 중에서 성별과 학생/선생에 대한 데이터를 가지고 라디오버튼으로 처리해준다
+9. 나머지는 input태그 안에서 defaultValue를 사용해서 값을 집어넣어준다
+10. 테이블 밑에는 update, expelled 버튼을 만들어준다
+11. 버튼을 만들 때는 ShowList로 바로 갈수 있게끔 NavLink를 사용해서 라우팅한다
+
+```jsx
+let info = this.state.info
+if(info!==[]){
+    let gender
+    if(info.gender){
+        gender= <span>
+                <input type="radio" id="male" name="gender" value="남자" defaultChecked onChange={this.handleChange}/>
+                남자
+                <input type="radio" id="female" name="gender" value="여자" onChange={this.handleChange}/>
+                여자
+            </span>
+    }else{
+        gender= <span>
+                <input type="radio" id="male" name="gender" value="남자" onChange={this.handleChange}/>
+                남자
+                <input type="radio" id="female" name="gender" value="여자" defaultChecked onChange={this.handleChange}/>
+                여자
+            </span>
+    }
+
+    info=<div>
+            <table className="table">
+                <thead>
+                    <tr>
+                        <td style={categoryStyle}>항목</td><td>내용</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>초원</td><td><input defaultValue={info.pasture} ref={ref=>this.pasture=ref}></input></td>
+                    </tr>
+                    <tr>
+                        <td>목장</td><td><input defaultValue={info.farm} ref={ref=>this.farm=ref}></input></td>
+                    </tr>
+                    <tr>
+                        <td>이름</td><td><input defaultValue={info.name} ref={ref=>this.name=ref}></input></td>
+                    </tr>
+                    <tr>
+                        <td>생일</td><td><input type="date" defaultValue={info.b_day} ref={ref=>this.b_day=ref}></input></td>
+                    </tr>
+                    <tr>
+                        <td>학교</td><td><input defaultValue={info.school} ref={ref=>this.school=ref}></input></td>
+                    </tr>
+                    <tr>
+                        <td>학년/년차</td><td><input defaultValue={info.year} ref={ref=>this.year=ref}></input></td>
+                    </tr>
+                    <tr>
+                        <td>지역</td><td><input defaultValue={info.area} ref={ref=>this.area=ref}></input></td>
+                    </tr>
+                    <tr>
+                        <td>연락처</td><td><input defaultValue={info.phone} ref={ref=>this.phone=ref}></input></td>
+                    </tr>
+                    <tr>
+                        <td>부모님 연락처</td><td><input defaultValue={info.parents_phone} ref={ref=>this.parents_phone=ref}></input></td>
+                    </tr>
+                    <tr>
+                        <td>성별</td>
+                        <td>
+                            {gender}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <NavLink to='/list'><button onClick={this.update}>update</button></NavLink>
+            <NavLink to='/list'><button onClick={this.expelled}>expelled</button></NavLink>
+            
+        </div>
+}
+```
+
+12 .update버튼을 누르면 호출 되는update함수는 기존의 submit함수의 이름만 update로 바꿔서 사용한다
+
+13. 값을 넘겨받는 건 그대로 사용하고 axios의 경로만 /list/update로 바꿔주고  send_param에서 id의 값도 추가해준다
+14. server로 가서 /list/update 경로에서 sequelize를 사용해 데이터를 update한다
+
+```js
+router.post('/update', async (req,res)=>{
+    console.log(req.body.id);
+    try{
+        let gender=false
+        if(req.body.gender==="남자"){
+            gender=true;
+        }
+        let isStudent=true
+        if(req.body.gender==='선생'){
+            isStudent=false;
+        }
+        await Member.update({
+            pasture:req.body.pasture,
+            farm:req.body.farm,
+            name:req.body.name,
+            b_day:req.body.b_day,
+            school:req.body.school,
+            year:req.body.year,
+            area:req.body.area,
+            phone:req.body.phone,
+            parents_phone:req.body.parents_phone,
+            gender,
+            isStudent,
+        },{
+            where:{id:req.body.id}
+        })
+
+        res.json({message:"수정되었습니다"})
+
+    }catch(err){
+        console.log(err);
+        res.json({message:false});
+    }
+})
+
+```
+
+15. 이제 expelled버튼에 대한 처리를 해준다 id값과 expelled값을true로 보내준다
+
+```jsx
+expelled = async()=>{
+    const send_param={
+        headers,
+        id:this.props.locaction.query.id,
+        expelled:true,
+    }
+    try{
+        const result = await axios.post('http://localhost:8080/list/expelled', send_param);
+        if(result.data.message){
+            alert(result.data.message);
+        }else{
+            alert("제적실패");
+        }
+    }catch(err){
+        alert("제적실패");
+    }
+}
+```
+
+16. 서버에서는 보내준 값을 받아서 sequelize를 이용해 데이터를 수정한다
+
+```js
+router.post('/expelled', async (req,res)=>{
+    try{
+        await Member.update({
+           expelled:req.body.expelled,
+        },{
+            where:{id:req.body.id}
+        })
+        res.json({message:"제적되었습니다"})
+    }catch(err){
+        console.log(err);
+        res.json({message:false});
+    }
+})
+```
+
+17. 제적이 완료 되면 이제 ShowList에서는 제적된 인원이 뜨지 않게 ShowList 페이지에서 데이터를 가져올 때 쿼리문을 expelled:false 를 where문에 추가한다
+
+```js
+router.post('/show', async (req,res)=>{
+    try{
+        const list = await Member.findAll({
+            where: {newFriend:false, expelled:false}, 
+            order:[['pasture', 'asc'], ['farm', 'asc'], ['isStudent', 'desc']]
+        })
+        res.json({list});
+    }catch(err){
+        console.log(err);
+        res.json({list:false});
+    }
+})
+```
+
+
+
+
+
+### 제적 명단
+
+1. List의 제적 명단의 경우 newFriends 페이지와  동일하다 다른점은 member테이블에서 newFriend 항목 대신 expelled항목이 true인 값을 받아온다 먼저 newFriend.jsx 파일을 복사해서 expelled.jsx파일을 만들어준다
+2. 클래스 이름을 ExpelledList로 바꾼다
+3. getList에서 axios경로를 /list/expelledList로 바꿔준다
+4. 등반 버튼을 복귀 버튼으로 바꾼 다음 register함수 이름도 comeback함수로 바꿔주고 axios경로를 /list/expelled로 바꿔준다
+
+```jsx
+import React, {Component} from 'react';
+import axios from 'axios';
+
+axios.defaults.withCredentials = true;
+const headers={withCredentials:true};
+
+class ExpelledList extends Component{
+
+    state = {
+        list:[],
+    }
+    
+    Comeback = async (id) =>{
+        const send_param={
+            headers,
+            id,
+            expelled:false
+        }
+        try{
+            const result = await axios.post('http://localhost:8080/list/expelled', send_param);
+            if(result.data.message){	
+                this.getList();
+            }
+        }catch(err){
+            return null;
+        }
+    }
+    getList = async ()=>{
+        try{
+            const result = await axios.post('http://localhost:8080/list/expelledlist', {headers});
+            if(result.data.list){
+                this.setState({
+                    list:result.data.list
+                })
+            }
+        }catch(err){
+            return null;
+        }
+    }
+
+    componentWillMount(){
+        this.getList();
+    }
+
+    render(){
+        let list = this.state.list.map((item)=>{ 
+            let b_day = item.b_day.split("-");
+            return (
+                <tr key={item.id}>
+                    <td>{item.pasture}</td>
+                    <td>{item.farm}</td>
+                    <td>{item.name}</td>
+                    <td>{item.school}</td>
+                    <td>{item.year}</td>
+                    <td>{b_day[1]}-{b_day[2]}</td>
+                    <td>{item.phone}</td>
+                    <td>{item.parents_phone}</td>
+                    <td><button onClick={this.Comeback.bind(null, item.id)}>복귀</button></td>
+                </tr>
+            )
+        })
+
+        return(
+            <div>
+                <table className="table">
+                    <thead>
+                        <tr>
+                            <td>초원</td>
+                            <td>목장</td>
+                            <td>이름</td>
+                            <td>학교</td>
+                            <td>학년/년차</td>
+                            <td>생일</td>
+                            <td>연락처</td>
+                            <td>보호자연락처</td>
+                            <td>기타</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {list}
+                    </tbody>
+                </table>
+            </div>
+        )
+    }
+}
+
+export default ExpelledList;
+```
+
+6. ExpelledList.jsx를 다 작성하고 server로 가서 /list/expelledList의 처리를 해준다
+   expelled의 값이 true인 값들만 찾아와서 반환해준다
+
+```
+router.post('/expelledList', async (req,res)=>{
+    try{
+        const list = await Member.findAll({
+            where: {expelled:true}
+        },{
+            order:[['pasture', 'asc'], ['farm', 'asc']]
+        },)
+        res.json({list});
+    }catch(err){
+        console.log(err);
+        res.json({list:"error"});
+    }
+})
+```
+
+7. /list/comeback에 대한 경도로 추가해서 expelledList에서 원하는 인원의 id을 받아와 expelled 값을 다시 false로 바꿔준다
+
+```jsx
+router.post('/expelled', async (req,res)=>{
+    try{
+        await Member.update({
+           expelled:req.body.expelled,
+        },{
+            where:{id:req.body.id}
+        })
+        res.json({message:"success"})
+    }catch(err){
+        console.log(err);
+        res.json({message:false});
+    }
+})
+```
 
 
 
@@ -1100,10 +1489,486 @@ router.post('/show', async (req,res)=>{
 
 
 
+## 출석
+
+
+
+### 출석하기
+
+1. 출석 현황을 보여주기 전에 출석 기능부터 구현한다 먼저 출석을 하기 위해서는 member테이블에서 list를 불러오고 초원, 목장, 이름과 체크박스만 ui에 테이블 형태로 보여준다
+2. 먼저 Today.jsx를 만들고 다음과 같이 코딩한다
+
+ ```jsx
+import React, {Component} from 'react';
+import axios from 'axios';\
+
+axios.defaults.withCredentials = true;
+const headers={withCredentials:true};
+
+class Today extends Component{
+
+    render(){
+        return(
+            <div>
+                <table className="table">
+                    <thead>
+                        <tr>
+                            <td>초원</td>
+                            <td>목장</td>
+                            <td>이름</td>
+                            <td>출석</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+            </div>
+        )
+    }
+}
+export default Today;
+ ```
+
+3. Content.jsx에 Today Route를 추가해주고 브라우저에서 잘 작동하는지 확인한다
+4. componentWillMount에서 getList함수를 호출해서 화면을render하기 전에 member테이블의 데이터를 가져온다 출석할 때 인원은 기존 인원과 새친구들이다 기존 인원과 새친구들의 데이터는 showlist와 newfirends에서 받아온 것과 동일하니 server에 똑같은 경로로 찾아가서 받아와 주면 된다
+
+```jsx
+getList = async()=>{
+    try{
+        const oldList=await axios.post('http://localhost:8080/list/show', {headers});
+        const newList=await axios.post('http://localhost:8080/list/newList', {headers});
+        if(oldList.data.list && newList.data.list){
+            this.setState({
+                oldList:oldList.data.list,
+                newList:newList.data.list,
+            })
+        }else{
+            alert('목록을 불러오는데 실패했습니다');
+        }
+    }catch(err){   
+        alert('목록을 불러오는데 실패했습니다');
+    }
+}
+```
+
+5. 이제 받아온 데이터를 다른 리스트에서 했던 것 처럼 map함수를 이용해서 테이블 형태로 가공해서 불러온다
+
+   oldList와 newList는 하는 일이 똑같음으로 함수를 만들어서 호출한다 함수는 다음과 같다
+
+```jsx
+makeTableList = (list)=>{
+    let result = list.map((item)=>{
+        return (
+            <tr key={item.id}>
+                <td>{item.pasture}</td>
+                <td>{item.farm}</td>
+                <td>{item.name}</td>
+                <td><input type="checkbox" name={item.id}></input></td>
+            </tr>
+        )
+    })
+    return result
+}
+```
+
+정의한 함수를 호출한다
+
+```jsx
+let oldList = this.makeTableList(this.state.oldList);
+let newList = this.makeTableList(this.state.newList);
+
+return(
+    <div>
+        <table className="table" style={attendanceStyle}>
+            <thead>
+                <tr>
+                    <td>초원</td>
+                    <td>목장</td>
+                    <td>이름</td>
+                    <td>출석</td>
+                </tr>
+            </thead>
+            <tbody>
+                {oldList}
+                <tr>
+                    <td colSpan="4">새친구들</td>
+                </tr>
+                {newList}
+            </tbody>
+
+        </table>
+        <NavLink to="/showgraph"><button onClick={this.attendanceCheck}>submit</button></NavLink>
+    </div>
+)
+```
+
+6. attendanceCheck함수에서는 checkbox의 값을을 읽을 때는 jquery를 사용함으로 `npm i juqery` 명령어로 jquery를 설치하고 `import $ from 'jqery'`를 헤더에 추가해서 사용한다
+
+```jsx
+attendanceCheck = async()=>{
+    try{
+        let checkAtt=[0];
+
+        	this.state.oldList.forEach((item)=>{
+                if($(`input:checkbox[name="${item.id}"]`).is(":checked")){
+                    checkAtt[item.id]=item.id
+                }
+            })
+            this.state.newList.forEach((item)=>{
+                if($(`input:checkbox[name="${item.id}"]`).is(":checked")){
+                    checkAtt[item.id]=item.id
+                }
+            })
+        const send_param={
+            headers,
+            checkAtt,
+        }
+        const result = await axios.post('http://localhost:8080/attendance/checkAtt', send_param);
+        if(result.data.message){
+            alert(result.data.message);
+        }else{
+            alert('출석실패');
+        }
+    }catch(err){
+        alert("에러");
+    }
+}
+```
+
+7. server에서 attendanceRouter.js를 만들어준다
+8. server.js 에서 `app.use('/attendance', require('./routes/attendanceRouter'))` 추가
+9. attendance.js에서는 Days테이블을 require해준다
+10.  /attendance/checkAtt 경로에 대한 처리를 해준다
+11. 가장 먼저 출석하려는 오늘 날짜에 대한 데이터가 이미 있는지 확인한다
+12. 데이터가 이미 있는 경우 res.json을 사용해서 종료
+13. 없는 경우 sequelize를 사용헤 데이터베이스에 데이터를 추가한다
+14. 데이터를 추가할 때에는 받아온 checkAtt 배열에서 filter함수를 사용해 값이 있는 항목들만 추가한다
+
+```js
+router.post('/checkAtt', async (req,res)=>{
+    try{
+        const isDay = await Days.findOne({
+            where:{attendance_day: Date.now()}
+        })
+        
+        if(isDay){
+            res.json({message:"오늘은 이미 출석하였습니다!"})
+        }else{
+            const days_result = await Days.create({
+                attendance_day: Date.now()
+            });
+
+            const filter_result = req.body.checkAtt.filter((item)=>{
+                if(item !== null){
+                    return item;
+                }
+            })
+            days_result.addMembers(filter_result);
+        }
+        res.json({message:"출석이 완료 되었습니다"});
+        
+    } catch(err){
+        console.log(err);
+        res.json({message:false});
+    }
+})
+```
 
 
 
 
+
+### 출석 그래프
+
+1. 그래프를 그리기 위해서는 먼저 데이터베이스에서 출석 데이터를 가져와야 한다 마찬가지로 componentWillMount에서 데이터를 가져온다
+2. 그래프에서는 날짜들과 해당 날짜에 출석한 인원들의 정보를 받아온다
+
+```jsx
+getAttendance = async()=>{
+    try{
+   		const result=await axios.post('http://localhost:8080/attendance/showgraph', {headers})
+        if(result.data.message){
+            this.setState({
+                daysList:result.data.days,
+                AttList:result.data.attList,
+            })
+        }else{ 
+            alert('데이터를 가져오지 못했습니다');
+        }
+    }catch(err){
+        alert('에러');
+    }
+}
+componentWillMount(){
+	this.getAttendance();
+}
+```
+
+3. 서버에서는 먼저 days테이블에서 출석되어 있는 날짜들을 받아온다
+4. 받아온 데이터는 join테이블인 attendance에서 데이터를 가져오기 위해 findOne 메소드의 결과물로 뽑아낸다
+5. 뽑아낸 데이터를가지고 getMembers 메서드를 사용해서 출석한 인원들의 정보를 얻어온다
+
+```jsx
+router.post('/showgraph', async (req,res)=>{
+    try{
+        const daysList = await Days.findAll({  
+            order:[['attendance_day', 'asc']]
+        },)   //3.
+
+        const listMap = await Promise.all(daysList.map((item)=>{
+            return Days.findOne({
+                where:{attendance_day:item.attendance_day},
+            })
+        }))  //4.
+
+        const AttList = await Promise.all(listMap.map((item)=>{
+            return item.getMembers();
+        }))  //5.
+
+        res.json({message:true, daysList, AttList})
+    }catch(err){
+        console.log(err)
+        res.json({message:false});
+    }
+    
+})
+```
+
+6. 받아온 데이터는 먼저 테이블 형태로 보여줄 것이다 map함수를 사용해서 테이블형태로 만들어서 render한다
+   categoryStyle은 보기 편하게 위함이니 생략 가능(css요소)
+
+```jsx
+render(){
+    const categoryStyle={
+        width:500,
+    }
+
+    let list = this.state.daysList.map((item, index)=>{
+        const total = this.state.AttList[index].length;
+        return (
+            <tr key={item.id}>
+                <td>{item.attendance_day}</td>
+                <td>{total}</td>
+            </tr>
+        )
+    })
+    return (
+        <div>
+            <table style={categoryStyle} className="table">
+                <thead>
+                    <tr>
+                        <td>날짜</td>
+                        <td>출석인원</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {list}
+                </tbody>
+            </table>
+        </div>
+    )
+}
+```
+
+7. 여기까지 잘 보인다면 이제 데이터를 가지고 그래프를 만들어본다 그래프는 google에서 제공하는 api를 이용한다
+8. 먼저 `npm i react-google-charts` 명령어로 google에서 제공하는 charts 라이브러리를 설치한다
+9. 설치가 완료되면 헤더부분에 `import Charts from 'react-google-charts';` 를 추가해준다
+10. 이제 잘 작동하는지 google에서 제공하는 예제를 가져다가 실행해본다 그래프는 테이블 위쪽에 나타나게 코딩한다
+
+```jsx
+<Chart
+  width={'600px'}
+  height={'400px'}
+  chartType="Line"
+  loader={<div>Loading Chart</div>}
+  data={[
+    [
+      'Day',
+      'Guardians of the Galaxy',
+      'The Avengers',
+      'Transformers: Age of Extinction',
+    ],
+    [1, 37.8, 80.8, 41.8],
+    [2, 30.9, 69.5, 32.4],
+    [3, 25.4, 57, 25.7],
+    [4, 11.7, 18.8, 10.5],
+    [5, 11.9, 17.6, 10.4],
+    [6, 8.8, 13.6, 7.7],
+    [7, 7.6, 12.3, 9.6],
+    [8, 12.3, 29.2, 10.6],
+    [9, 16.9, 42.9, 14.8],
+    [10, 12.8, 30.9, 11.6],
+    [11, 5.3, 7.9, 4.7],
+    [12, 6.6, 8.4, 5.2],
+    [13, 4.8, 6.3, 3.6],
+    [14, 4.2, 6.2, 3.4],
+  ]}
+  options={{
+    chart: {
+      title: 'Box Office Earnings in First Two Weeks of Opening',
+      subtitle: 'in millions of dollars (USD)',
+    },
+  }}
+  rootProps={{ 'data-testid': '3' }}
+/>
+```
+
+11. 브라우저에서 그래프가 잘 보인다면 이제 data를 우리가 원하는 data로 가공한다 
+12. 먼저 list를 정의하는 부분 윗쪽에서 data의 항목들을 정의한다
+13. 날짜는 년도를 빼고 월/일만 나타내게 바꿔준다
+14. total변수에는 전체 출석 인원, newFriends에는 새친구들의 인원수를 넣어준다
+15. 그 다음 push메소드를 사용해서 날짜와 해당날짜에 출석한 전체 인원, 새친구들의 데이터를 넣어준다
+
+```jsx
+const data = [
+    ['날짜', '전체인원', '새친구']
+]
+let list = this.state.daysList.map((item, index)=>{
+    const day = item.attendance_day.split("-");
+    const total = this.state.AttList[index].length;
+    const newFriends = this.state.AttList[index].filter((value)=>{
+        return value.newFriend===true;
+    })
+    data.push([`${day[1]}-${day[2]}`, total, newFriends.length])
+
+    return (
+        <tr key={item.id}>
+            <td>{item.attendance_day}</td>
+            <td>{total}</td>
+        </tr>
+    )
+})
+```
+
+16. 이제 Charts 태그에서 data부분을 다 지우고 `data={data}`로 바꿔준다
+
+
+
+### 출석 수정
+
+1. 이제 마지막으로 그래프 아래에서 해당 날짜를 눌렀을때 해당 날짜의 출석 인원들을 수정할 수 있는 페이지이다
+2. EditAtt.jsx 파일을 만들어 준다
+3. Content.jsx에 가서 editAtt 경로를 추가해준다
+4. 먼저 날짜를 눌렀을 때 해당 페이지로 이동할 수 있게 NavLink를 사용해서 해당 날짜의 id를 같이 넘겨준다
+
+```
+<NavLink to={{pathname:'/editAtt', query:{id:item.id}}}>{item.attendance_day}</NavLink>
+```
+
+5. EditAtt.jsx에서는 해당 날짜의 id를 가지고 데이터베이스에서 해당 날짜의 출석한 인원들의 데이터를 받아온다 componentWillMount에서 getAtt를 호출한다 state에 oldList, newList, attList를 정희해준다
+
+```jsx
+state={
+    oldList:[],
+    newList:[],
+    attList:[],
+}
+
+getAtt= async ()=>{    
+    const send_param={
+        headers,
+        id: this.props.location.query.id,
+    }  
+    try{
+        const oldList=await axios.post('http://localhost:8080/list/show', {headers});
+        const newList=await axios.post('http://localhost:8080/list/newList', {headers});
+        const attList=await axios.post('http://localhost:8080/attendance/editList', send_param);
+        if(oldList.data.list && newList.data.list && attList.data.list ){
+            this.setState({
+                oldList:oldList.data.list,
+                newList:newList.data.list,
+                attList:attList.data.list,
+            })
+        }
+    }catch(err){
+        return null;
+    }
+}
+
+componentWillMount(){
+    this.getAtt();
+}
+```
+
+6. 서버에서 다음과 같이 값을 받아서 보내준다
+
+```js
+router.post('/editList', async (req,res)=>{
+    try{
+        const isDay = await Days.findOne({
+            where:{id: req.body.id},
+        })
+        
+        const list = await isDay.getMembers();
+
+        res.json({list})
+    }catch(err){
+        console.log(err);
+        res.json({list:false})
+    }
+})
+```
+
+7. 이제 받은 데이터를 가지고 테이블 형태로 만들어주는데 oldList와 newList에 대해 동일한 작업을 하니 함수를 따로 만들어서 호출하는 방식으로 만들어준다 함수는 다음과 같다
+
+```jsx
+checkList = (list)=>{
+    const result = list.map((item)=>{ 
+        let checked = false;
+        this.state.attList.forEach((value)=>{
+            if (value.id === item.id)
+                checked = true;
+        })
+        return (
+            <tr key={item.id}>
+                <td>{item.pasture}</td>
+                <td>{item.farm}</td>
+                <td>{item.name}</td>
+                <td><input type="checkbox" defaultChecked={checked} name={item.id}></input></td>
+            </tr>
+        )
+    })
+
+    return result
+}
+```
+
+8. 이제 render부분에서 함수를 호출하고 return하는 부분에서 값을 사용한다
+9. submit 버튼을 누르면 showgraph페이지로 NavLink를 사용해서 이동시킨다
+
+```jsx
+render(){
+    const attendanceStyle={
+        width:500,
+    }
+
+    let oldlist = this.checkList(this.state.oldList);
+    let newlist = this.checkList(this.state.newList);
+
+    return(
+        <div>
+            <table className="table" style={attendanceStyle}>
+                <thead >
+                    <tr>
+                        <td>초원</td>
+                        <td>목장</td>
+                        <td>이름</td>
+                        <td>출석</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {oldlist}
+                    <td colspan="4">새친구들</td>
+                    {newlist}
+                </tbody>
+            </table>
+            <NavLink to="/showgraph"><button onClick={this.editDays}>submit</button></NavLink>
+        </div>
+    )
+}
+```
 
 
 

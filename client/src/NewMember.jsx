@@ -2,12 +2,10 @@ import React, {Component} from 'react';
 import axios from 'axios';
 import {NavLink} from 'react-router-dom';
 
-
 axios.defaults.withCredentials = true;
 const headers={withCredentials:true};
 
-class NewMember extends Component{
-
+class NewMember extends Component{    
     state = {
         gender:"",
         isStudent:""
@@ -31,13 +29,15 @@ class NewMember extends Component{
         try{
             const result = await axios.post('http://localhost:8080/list/new', send_param);
             if(result.data.message){
-                return result
+                alert("추가 되었습니다");
+                return null
             }
         }catch(err){
             alert("추가 실패");
             return null;
         }
     }
+
     handleChangeG=(event)=>{
         this.setState({
           gender: event.target.value
@@ -48,9 +48,9 @@ class NewMember extends Component{
             isStudent: event.target.value
         });
     }
-    
 
     render(){
+
         const categoryStyle={
             width:200,
         }
@@ -110,13 +110,13 @@ class NewMember extends Component{
                 </table>
                 <NavLink to='/list'><button onClick={this.submit}>submit</button></NavLink>
             </div>
-        
-        return(
+
+        return (
             <div>
                 {info}
             </div>
         )
     }
-}
 
+}
 export default NewMember;

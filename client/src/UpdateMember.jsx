@@ -2,42 +2,70 @@ import React, {Component} from 'react';
 import axios from 'axios';
 import {NavLink} from 'react-router-dom';
 
-
 axios.defaults.withCredentials = true;
 const headers={withCredentials:true};
 
-class UpdateList extends Component{
-
+class UpdateMember extends Component{    
     state = {
+        gender:"",
+        isStudent:"",
         info:[],
-        gender:""
     }
 
-    delList = async()=>{
+    expelled = async()=>{
         const send_param={
             headers,
-            id: this.props.location.query.id,
+            id:this.props.location.query.id,
+            expelled:true,
         }
         try{
-            const result = await axios.post('http://localhost:8080/list/delList', send_param);
-            if(result.data.info){
-                this.setState({
-                    info:result.data.info
-                })
+             const result = await axios.post('http://localhost:8080/list/expelled', send_param);
+             if(result.data.message){
+                 alert(result.data.message);
+                 
+             }else{
+                 alert("제적실패");
+             }
+        }catch(err){
+            alert("제적실패");
+        }
+    }
+
+    update = async ()=>{
+        try{
+            const send_param={
+                headers,
+                id: this.props.location.query.id,
+                pasture:this.pasture.value,
+                farm:this.farm.value,
+                name:this.name.value,
+                b_day:this.b_day.value,
+                school:this.school.value,
+                year:this.year.value,
+                area:this.area.value,
+                phone:this.phone.value,
+                parents_phone:this.parents_phone.value,
+                gender:this.state.gender,
+                isStudent:this.state.isStudent,
+            }
+            const result = await axios.post('http://localhost:8080/list/update', send_param);
+            if(result.data.message){
+                alert(result.data.message);
+                return null
             }
         }catch(err){
+            alert("수정 실패");
             return null;
         }
     }
 
-    search = async()=>{        
+    getInfo = async()=>{
         try{
             const send_param={
                 headers,
                 id: this.props.location.query.id,
             }
-
-            const result = await axios.post('http://localhost:8080/list/update', send_param);
+            const result = await axios.post('http://localhost:8080/list/getInfo', send_param);
             if(result.data.info){
                 this.setState({
                     info:result.data.info
@@ -47,60 +75,24 @@ class UpdateList extends Component{
             return null;
         }
     }
-    expelled = async () =>{
-        const send_param={
-            headers,
-            id: this.props.location.query.id,
-            expelled:true
-        }
-        try{
-            const result = await axios.post('http://localhost:8080/list/expelled', send_param);
-            if(result.data.info){
-                this.setState({
-                    info:result.data.info
-                })
-            }
 
-        }catch(err){
-            console.log(err);
-            return null;
-        }
-    }
-    submit = async ()=>{
-        const send_param={
-            headers,
-            id: this.props.location.query.id,
-            pasture:this.pasture.value,
-            farm:this.farm.value,
-            name:this.name.value,
-            b_day:this.b_day.value,
-            school:this.school.value,
-            year:this.year.value,
-            area:this.area.value,
-            phone:this.phone.value,
-            parents_phone:this.parents_phone.value,
-            gender:this.state.gender,
-        }
-        try{
-            const result = await axios.post('http://localhost:8080/list/submit', send_param);
-            if(result.data.message){
-                return result
-            }
-        }catch(err){
-            return null;
-        }
-    }
-    handleChange=(event)=>{
+    handleChangeG=(event)=>{
         this.setState({
           gender: event.target.value
         });
     }
-    componentWillMount(){
-        this.search();
+    handleChangeS=(event)=>{
+        this.setState({
+            isStudent: event.target.value
+        });
     }
-    
+
+    componentWillMount(){
+        this.getInfo();
+    }
 
     render(){
+
         const categoryStyle={
             width:200,
         }
@@ -110,18 +102,37 @@ class UpdateList extends Component{
             let gender
             if(info.gender){
                 gender= <span>
-                            <input type="radio" id="male" name="gender" value="남자" defaultChecked onChange={this.handleChange}/>
-                            남자
-                            <input type="radio" id="female" name="gender" value="여자" onChange={this.handleChange}/>
-                            여자
+                            <input type="radio" id="male" name="gender" value="남자" defaultChecked onChange={this.handleChangeG}/>
+                            <label for="male">남자</label>
+                            <input type="radio" id="female" name="gender" value="여자" onChange={this.handleChangeG}/>
+                            <label for="female">여자</label>
                         </span>
             }else{
                 gender= <span>
-                            <input type="radio" id="male" name="gender" value="남자" onChange={this.handleChange}/>
-                            남자
-                            <input type="radio" id="female" name="gender" value="여자" defaultChecked onChange={this.handleChange}/>
-                            여자
+                            <input type="radio" id="male" name="gender" value="남자"  onChange={this.handleChangeG}/>
+                            <label for="male">남자</label>
+                            <input type="radio" id="female" name="gender" value="여자" defaultChecked onChange={this.handleChangeG}/>
+                            <label for="female">여자</label>
                         </span>
+            }
+            let isStudent
+            if(info.isStudent){
+                isStudent=
+                    <span>
+                        <input type="radio" id="studnet" name="isStudent" value="학생" defaultChecked onChange={this.handleChangeS}/>
+                        <label for="student">학생</label>
+                        <input type="radio" id="teacher" name="isStudent" value="선생" onChange={this.handleChangeS}/>
+                        <label for="teacher">선생</label>
+                    </span>
+            }else{
+                isStudent=
+                    <span>
+                        <input type="radio" id="studnet" name="isStudent" value="학생" onChange={this.handleChangeS}/>
+                        <label for="student">학생</label>
+                        <input type="radio" id="teacher" name="isStudent" value="선생" defaultChecked onChange={this.handleChangeS}/>
+                        <label for="teacher">선생</label>
+                    </span>
+
             }
             
             info=<div>
@@ -165,19 +176,25 @@ class UpdateList extends Component{
                                     {gender}
                                 </td>
                             </tr>
+                            <tr>
+                                <td>학생/선생</td>
+                                <td>
+                                    {isStudent}
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
-                    <NavLink to='/list'><button onClick={this.submit}>submit</button></NavLink>
+                    <NavLink to='/list'><button onClick={this.update}>update</button></NavLink>
                     <NavLink to='/list'><button onClick={this.expelled}>expelled</button></NavLink>
-                    <NavLink to='/list'><button onClick={this.delList}>delete</button></NavLink>
                 </div>
         }
-        return(
+
+        return (
             <div>
                 {info}
             </div>
         )
     }
-}
 
-export default UpdateList;
+}
+export default UpdateMember;

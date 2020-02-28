@@ -1,11 +1,7 @@
-#container {
-    margin-top: 50px;
+.container {
+    margin-top:50px;
 }
 
 #content {
     margin-top: 50px;
-}
-
-.attendance {
-    width: 150px;
 }
