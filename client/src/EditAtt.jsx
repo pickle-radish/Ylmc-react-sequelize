@@ -14,12 +14,16 @@ class EditAtt extends Component{
         list:[],
         attList:[],
         attCheck:[],
+        newFriend:[]
     }
 
     editDays = async () =>{
         let checkAtt=[0];
 
         this.state.list.forEach((item)=>{
+            checkAtt[item.id]=$(`input:checkbox[name="${item.id}"]`).is(":checked")
+        })
+        this.state.newFriend.forEach((item)=>{
             checkAtt[item.id]=$(`input:checkbox[name="${item.id}"]`).is(":checked")
         })
         const send_param={
@@ -50,6 +54,7 @@ class EditAtt extends Component{
             if(result.data.list){
                 this.setState({
                     list:result.data.list,
+                    newFriend:result.data.newFriendList,
                     attList:attlist.data.list,
                 })
             }
@@ -85,6 +90,22 @@ class EditAtt extends Component{
             )
         })
 
+        let newFriends = this.state.newFriend.map((item)=>{ 
+            let checked = false;
+            this.state.attList.forEach((value)=>{
+                if (value.id === item.id)
+                    checked = true;
+            })
+            return (
+                <tr key={item.id}>
+                    <td>{item.pasture}</td>
+                    <td>{item.farm}</td>
+                    <td>{item.name}</td>
+                    <td><input type="checkbox" defaultChecked={checked} name={item.id}></input></td>
+                </tr>
+            )
+        })
+
 
         return(
             <div>
@@ -99,6 +120,8 @@ class EditAtt extends Component{
                     </thead>
                     <tbody>
                         {list}
+                        <td colspan="4">새친구들</td>
+                        {newFriends}
                     </tbody>
                 </table>
                 <NavLink to="/showgraph"><button onClick={this.editDays}>submit</button></NavLink>

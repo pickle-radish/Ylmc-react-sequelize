@@ -10,7 +10,6 @@ class NewFriend extends Component{
 
     state = {
         list:[],
-        newFriend:0
     }
     
     register = async (id) =>{
@@ -22,14 +21,10 @@ class NewFriend extends Component{
         try{
             const result = await axios.post('http://localhost:8080/list/register', send_param);
             if(result.data.message){
-                this.setState({
-                    newFriend:this.state.newFriend+1,
-                })
                 this.getList();
             }
 
         }catch(err){
-            console.log(err);
             return null;
         }
     }

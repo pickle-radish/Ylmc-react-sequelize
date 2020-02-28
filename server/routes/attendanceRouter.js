@@ -120,7 +120,7 @@ router.post('/show', async (req,res)=>{
         // const dayCount = daysList.map((item)=>{
         //     return await 
         // })
-        res.json({daysList,AttList});
+        res.json({daysList,AttList});   
     }catch(err){
         console.log(err);
         res.json({daysList:false});
