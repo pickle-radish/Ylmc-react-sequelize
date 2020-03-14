@@ -20,7 +20,7 @@ class ShowList extends Component{
                 })
             }
         }catch(err){
-            console.log(err);
+            // console.log(err);
             alert('목록을 불러올 수 없습니다');
         }
     }

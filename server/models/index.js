@@ -12,8 +12,9 @@ db.Sequelize = Sequelize;
 
 db.Member=require('./member')(sequelize,Sequelize);
 db.Days=require('./days')(sequelize,Sequelize);
+db.Attendance=require('./attendance')(sequelize,Sequelize);
 
-db.Member.belongsToMany(db.Days, {through: 'Attendance'});
-db.Days.belongsToMany(db.Member, {through: 'Attendance'});
+db.Member.belongsToMany(db.Days, {through: 'attendance'});
+db.Days.belongsToMany(db.Member, {through: 'attendance'});
 
 module.exports = db;

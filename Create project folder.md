@@ -90,7 +90,6 @@ module.exports = db;
 14. member.js 파일의 내용은 다음과 같다
 
 ```js
-
 module.exports = function(sequelize, DataTypes) {
     return sequelize.define('member', {
       name: {
@@ -150,7 +149,6 @@ module.exports = function(sequelize, DataTypes) {
 15.  days.js 파일의 내용은 다음과 같다
 
 ```js
-
 module.exports = function(sequelize, DataTypes) {
     return sequelize.define('days', {
       attendance_day: {
@@ -229,9 +227,9 @@ app.listen(8080, ()=>{
 
 1. create-react-app 으로 만들어진 client파일중 src밑의 파일을 다 지워준다
 2. 마찬가지로 public 파일 밑에 있는 파일들을  favicon.ico만 남기고 다 지운다 (favicon.ico 이 없으면 브라우저에 console부분에 계속 warning이 뜬다)
-3. public파일 밑에 index.html파일을 생성 다음과 같이 코드를 작성한다
+3. public폴더 밑에 index.html파일을 생성 다음과 같이 코드를 작성한다
 
-```htmlx
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -254,7 +252,7 @@ app.listen(8080, ()=>{
 
 4. 다음으로 src폴더 밑에 index.jsx파일을 생성하고 다음과 같이 코드를 작성한다
 
-```jsxx
+```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -1968,6 +1966,62 @@ render(){
         </div>
     )
 }
+```
+
+10. editDays함수는 출석할 때 사용하는 attendanceCheck함수와 동일하다 send_param부분에 id를 추가해주고 axios경로를 다음과 같이 바꿔준다
+
+```jsx
+editDays = async () =>{
+    let checkAtt=[0];
+
+    this.state.oldList.forEach((item)=>{
+        if($(`input:checkbox[name="${item.id}"]`).is(":checked")){
+            checkAtt[item.id]=item.id
+        }
+    })
+    this.state.newList.forEach((item)=>{
+        if($(`input:checkbox[name="${item.id}"]`).is(":checked")){
+            checkAtt[item.id]=item.id
+        }
+    })
+    const send_param={
+        headers,
+        id: this.props.location.query.id,
+        checkAtt,
+    }
+    try{
+        const result = await axios.post('http://localhost:8080/attendance/editAtt', send_param);
+        if(result.data.message){
+            alert(result.data.message);
+        }
+    }catch(err){
+        alert("에러");
+    }
+}
+```
+
+11. server에서는 먼저 해당 날짜의 id로 결과 값을 얻은후에 join table의 메소드를 사용해서 데이터를 수정해준다
+
+```js
+router.post('/editAtt', async (req,res)=>{
+    try{
+        const days_result = await Days.findOne({
+            where:{id: req.body.id}
+        });
+        const filter_result =  req.body.checkAtt.filter((item)=>{
+            if(item !== null){
+                return item;
+            }
+        })
+        await days_result.setMembers(filter_result)
+      
+        res.json({message:"수정되었습니다"});
+    }catch(err){
+        console.log(err);
+        res.json({message:false})
+    }
+})
+
 ```
 
 

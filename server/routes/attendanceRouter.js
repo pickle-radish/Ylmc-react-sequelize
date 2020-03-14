@@ -2,6 +2,9 @@ const express=require('express');
 const router=express.Router();
 
 const Days=require('../models').Days;
+const Attendance=require('../models').Attendance;
+const Member=require('../models').Member;
+
 
 router.post('/editAtt', async (req,res)=>{
     try{
@@ -14,7 +17,18 @@ router.post('/editAtt', async (req,res)=>{
             }
         })
         await days_result.setMembers(filter_result)
-      
+        
+        const newMember = await Member.findAll({
+            where:{newFriend:1},
+        })
+
+        await Promise.all(newMember.forEach((item)=>{
+            Attendance.update(
+                {newFriend:1},
+                {where:{memberid:item.id}}
+            )
+        }))
+        
         res.json({message:"수정되었습니다"});
     }catch(err){
         console.log(err);
@@ -46,7 +60,7 @@ router.post('/checkAtt', async (req,res)=>{
         if(isDay){
             res.json({message:"오늘은 이미 출석하였습니다!"})
         }else{
-            const days_result = await Days.create({
+            await Days.create({
                 attendance_day: Date.now()
             });
 
@@ -55,7 +69,21 @@ router.post('/checkAtt', async (req,res)=>{
                     return item;
                 }
             })
-            days_result.addMembers(filter_result);
+
+            const dayId = await Days.findOne({
+                where:{attendance_day:Date.now()},
+            })
+            
+            filter_result.forEach( async (item)=>{
+                const isnew = await Member.findOne({
+                    where:{id:item}
+                })
+                await Attendance.create({
+                    dayId:dayId.id,
+                    memberId:item,
+                    newFriend:isnew.newFriend,
+                })
+            })
         }
         res.json({message:"출석이 완료 되었습니다"});
 
@@ -69,18 +97,14 @@ router.post('/showgraph', async (req,res)=>{
     try{
         const daysList = await Days.findAll({  
             order:[['attendance_day', 'asc']]
-        },)
+        })
 
-        const listMap = await Promise.all(daysList.map((item)=>{
-            return Days.findOne({
-                where:{attendance_day:item.attendance_day},
+        const AttList= await Promise.all(daysList.map(async(item)=>{
+            return await Attendance.findAll({
+                where:{dayId:item.id},
             })
         }))
-
-        const AttList = await Promise.all(listMap.map((item)=>{
-            return item.getMembers();
-        }))
-
+    
         res.json({message:true, daysList, AttList})
     }catch(err){
         console.log(err)

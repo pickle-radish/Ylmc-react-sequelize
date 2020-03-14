@@ -64,7 +64,7 @@ class Today extends Component{
             }
         }catch(err){
             console.log(err);
-            alert("에러");
+            alert("출석에러");
         }
     }
 
