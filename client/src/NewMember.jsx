@@ -29,8 +29,10 @@ class NewMember extends Component{
         try{
             const result = await axios.post('http://localhost:8080/list/new', send_param);
             if(result.data.message){
-                alert("추가 되었습니다");
+                alert(result.data.message);
                 return null
+            }else{
+                alert("새 친구 등록에 실패했습니다")
             }
         }catch(err){
             alert("추가 실패");

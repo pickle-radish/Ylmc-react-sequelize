@@ -28,6 +28,7 @@ app.use(session({
 
 app.use('/list', require('./routes/listRouter'));
 app.use('/attendance', require('./routes/attendanceRouter'));
+app.use('/manager', require('./routes/managerRouter'));
 
 app.listen(8080, ()=>{
     console.log("8080 server ready...");

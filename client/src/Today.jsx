@@ -14,29 +14,6 @@ class Today extends Component{
 
     }
 
-    editDays = async () =>{
-        let checkAtt=[0];
-
-        this.state.list.forEach((item)=>{
-            checkAtt[item.id]=$(`input:checkbox[name="${item.id}"]`).is(":checked")
-        })
-        this.state.newFriend.forEach((item)=>{
-            checkAtt[item.id]=$(`input:checkbox[name="${item.id}"]`).is(":checked")
-        })
-        const send_param={
-            headers,
-            id: this.props.location.query.id,
-            checkAtt,
-        }
-        try{
-            const result = await axios.post('http://localhost:8080/attendance/editAtt', send_param);
-            if(result.data.message){
-                alert(result.data.message);
-            }
-        }catch(err){
-            console.log(err)
-        }
-    }
     
     attendanceCheck = async()=>{
         try{

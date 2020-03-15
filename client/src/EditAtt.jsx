@@ -77,6 +77,8 @@ class EditAtt extends Component {
                     newList:newList.data.list,
                     attList:attList.data.list,
                 })
+            }else{
+                alert('관리자 로그인이 필요합니다');
             }
         }catch(err){
             return null;
