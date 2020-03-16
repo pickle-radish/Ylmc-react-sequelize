@@ -19,7 +19,7 @@ class UpdateMember extends Component{
             expelled:true,
         }
         try{
-             const result = await axios.post('http://localhost:8080/list/expelled', send_param);
+             const result = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/list/expelled', send_param);
              if(result.data.message){
                  alert(result.data.message);
                  
@@ -48,7 +48,7 @@ class UpdateMember extends Component{
                 gender:this.state.gender,
                 isStudent:this.state.isStudent,
             }
-            const result = await axios.post('http://localhost:8080/list/update', send_param);
+            const result = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/list/update', send_param);
             if(result.data.message){
                 alert(result.data.message);
                 return null
@@ -65,7 +65,7 @@ class UpdateMember extends Component{
                 headers,
                 id: this.props.location.query.id,
             }
-            const result = await axios.post('http://localhost:8080/list/getInfo', send_param);
+            const result = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/list/getInfo', send_param);
             if(result.data.info){
                 this.setState({
                     info:result.data.info

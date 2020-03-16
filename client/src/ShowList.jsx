@@ -13,7 +13,7 @@ class ShowList extends Component{
 
     getList = async () => {
         try{
-            const result = await axios.post('http://localhost:8080/list/show', {headers});
+            const result = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/list/show', {headers});
             if(result.data.list){
                 this.setState({
                     list:result.data.list,

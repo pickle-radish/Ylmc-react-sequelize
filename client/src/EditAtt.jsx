@@ -33,7 +33,7 @@ class EditAtt extends Component {
             checkAtt,
         }
         try{
-            const result = await axios.post('http://localhost:8080/attendance/editAtt', send_param);
+            const result = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/attendance/editAtt', send_param);
             if(result.data.message){
                 alert(result.data.message);
             }
@@ -68,9 +68,9 @@ class EditAtt extends Component {
             id: this.props.location.query.id,
         }  
         try{
-            const oldList = await axios.post('http://localhost:8080/list/show', {headers});
-            const newList = await axios.post('http://localhost:8080/list/newList', {headers});
-            const attList = await axios.post('http://localhost:8080/attendance/editList', send_param);
+            const oldList = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/list/show', {headers});
+            const newList = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/list/newList', {headers});
+            const attList = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/attendance/editList', send_param);
             if(oldList.data.list && newList.data.list && attList.data.list ){
                 this.setState({
                     oldList:oldList.data.list,

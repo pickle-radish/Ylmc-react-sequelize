@@ -33,7 +33,7 @@ class Today extends Component{
                 headers,
                 checkAtt,
             }
-            const result = await axios.post('http://localhost:8080/attendance/checkAtt', send_param);
+            const result = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/attendance/checkAtt', send_param);
             if(result.data.message){
                 alert(result.data.message);
             }else{
@@ -60,18 +60,20 @@ class Today extends Component{
     }
 
     getList = async()=>{
+        
         try{
-            const oldList = await axios.post('http://localhost:8080/list/show', {headers});
-            const newList = await axios.post('http://localhost:8080/list/newList', {headers});
+            const oldList = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/list/show', {headers});
+            const newList = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/list/newList', {headers});
             if(oldList.data.list && newList.data.list){
                 this.setState({
                     oldList:oldList.data.list,
                     newList:newList.data.list,
                 })
             }else{
-                alert('목록을 불러오는데 실패했습니다');
+                alert('데이터베이스 에러 목록을 불러오는데 실패했습니다');
             }
         }catch(err){   
+            console.log(err);
             alert('목록을 불러오는데 실패했습니다');
         }
     }
@@ -117,3 +119,4 @@ class Today extends Component{
 }
 
 export default Today;
+

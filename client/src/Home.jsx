@@ -16,7 +16,7 @@ class Home extends Component{
                 id:this.id.value,
                 password:this.password.value,
             }
-            const result = await axios.post('http://localhost:8080/manager/login', send_param);
+            const result = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/manager/login', send_param);
             if(result.data.login){
                 sessionStorage.setItem('login', true);
                 this.setState({
@@ -35,7 +35,7 @@ class Home extends Component{
 
     logout = async () => {
         try{
-            const result = await axios.post('http://localhost:8080/manager/logout', {headers});
+            const result = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/manager/logout', {headers});
             if(result.data.logout){
                 sessionStorage.removeItem('login');
                 this.setState({

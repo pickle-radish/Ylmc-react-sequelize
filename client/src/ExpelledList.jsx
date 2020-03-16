@@ -18,7 +18,7 @@ class ExpelledList extends Component{
             expelled:false
         }
         try{
-            const result = await axios.post('http://localhost:8080/list/expelled', send_param);
+            const result = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/list/expelled', send_param);
             if(result.data.message){
                 alert(result.data.message);
                 this.getList();
@@ -31,7 +31,7 @@ class ExpelledList extends Component{
 
     getList = async () => {
         try{
-            const result = await axios.post('http://localhost:8080/list/expelledList', {headers});
+            const result = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/list/expelledList', {headers});
             if(result.data.list){
                 this.setState({
                     list:result.data.list,

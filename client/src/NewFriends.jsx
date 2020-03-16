@@ -17,7 +17,7 @@ class NewFriends extends Component{
             id,
         }
         try{
-            const result = await axios.post('http://localhost:8080/list/register', send_param);
+            const result = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/list/register', send_param);
             if(result.data.message){
                 alert(result.data.message);
                 this.getList();
@@ -30,7 +30,7 @@ class NewFriends extends Component{
 
     getList = async () => {
         try{
-            const result = await axios.post('http://localhost:8080/list/newList', {headers});
+            const result = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/list/newList', {headers});
             if(result.data.list){
                 this.setState({
                     list:result.data.list,

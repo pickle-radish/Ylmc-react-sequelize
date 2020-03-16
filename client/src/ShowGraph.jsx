@@ -15,7 +15,7 @@ class ShowGraph extends Component {
 
     getAttendance = async()=>{
         try{
-            const result = await axios.post('http://localhost:8080/attendance/showgraph', {headers})
+            const result = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/attendance/showgraph', {headers})
             if(result.data.message){
                 this.setState({
                     daysList:result.data.daysList,

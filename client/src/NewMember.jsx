@@ -27,7 +27,7 @@ class NewMember extends Component{
             isStudent:this.state.isStudent,
         }
         try{
-            const result = await axios.post('http://localhost:8080/list/new', send_param);
+            const result = await axios.post(process.env.REACT_APP_REQ_ADDRESS+'/list/new', send_param);
             if(result.data.message){
                 alert(result.data.message);
                 return null
